@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>學生座位安排器</title>
+  <style>
+    body { font-family: "Noto Sans TC", sans-serif; padding: 20px; line-height: 1.6; }
+    .seat {
+      display: inline-block;
+      margin: 4px;
+      padding: 4px;
+      background: #f0f0f0;
+      border: 1px solid #888;
+      cursor: move;
+      min-width: 60px;
+      min-height: 30px;
+      font-size: 14px; /* 調整字體大小 */
+      text-align: center;
+      user-select: none;
+    }
+    .row { margin-bottom: 8px; display: flex; align-items: center; }
+    .row-label {
+      font-weight: bold;
+      margin-right: 8px;
+      width: 70px;
+    }
+    #seatingArea {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    @media print {
+      button, textarea, input { display: none; }
+      .seat { background: #fff; border: 1px solid #000; }
+    }
+  </style>
+</head>
+<body>
+  <h2>學生座位安排器（含預覽、PDF、拖曳）</h2>
+
+  <label>班級名稱：<input id="className" type="text"></label><br><br>
+  <label>班級人數：<input id="studentCount" type="number" min="1"></label><br><br>
+  <label>學生名單（每行一位）：<br>
+    <textarea id="studentList" rows="10" cols="30" placeholder="每行輸入一位學生姓名"></textarea>
+  </label><br><br>
+  <label>座位排列（例如：5,6,7）：<input id="seatPattern" type="text" placeholder="每排人數用逗號分隔"></label><br><br>
+
+  <button onclick="generateSeats()">➤ 產生座位表</button>
+  <button onclick="saveData()">💾 儲存</button>
+  <button onclick="loadData()">📂 載入</button>
+  <button onclick="window.print()">🖨️ 列印</button>
+  <button onclick="downloadPDF()">⬇️ 下載 PDF</button>
+
+  <button onclick="location.href='index.html'">🏠 回首頁</button>
+
+
+  <div id="seatingArea"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    let dragSource = null;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function generateSeats() {
+      const names = document.getElementById('studentList').value.trim().split('\n').filter(n => n.trim());
+      const pattern = document.getElementById('seatPattern').value.trim().split(',').map(n => parseInt(n));
+      const studentCount = parseInt(document.getElementById('studentCount').value);
+      const totalSeats = pattern.reduce((a, b) => a + b, 0);
+
+      if (studentCount !== names.length) {
+        alert(`⚠️ 班級人數與學生名單數量不一致！\n輸入人數：${studentCount}，名單中實際人數：${names.length}`);
+        return;
+      }
+
+      if (totalSeats !== studentCount) {
+        alert(`⚠️ 座位數與學生人數不一致！\n座位總數：${totalSeats}，應為 ${studentCount}`);
+        return;
+      }
+
+      const shuffled = shuffle([...names]);
+      const seatingArea = document.getElementById('seatingArea');
+      seatingArea.innerHTML = '';
+
+      let index = 0;
+      for (let row = 0; row < pattern.length; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'row';
+
+        const label = document.createElement('span');
+        label.className = 'row-label';
+        label.textContent = `第 ${row + 1} 排`;
+        rowDiv.appendChild(label);
+
+        for (let col = 0; col < pattern[row]; col++) {
+          const seat = document.createElement('div');
+          seat.className = 'seat';
+          seat.textContent = shuffled[index];
+          seat.draggable = true;
+
+          seat.addEventListener('dragstart', (e) => {
+            dragSource = seat;
+            e.dataTransfer.setData("text/plain", seat.innerHTML);
+            seat.style.opacity = "0.5";
+          });
+
+          seat.addEventListener('dragover', (e) => e.preventDefault());
+
+          seat.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (dragSource && dragSource !== seat) {
+              let temp = seat.innerHTML;
+              seat.innerHTML = dragSource.innerHTML;
+              dragSource.innerHTML = temp;
+            }
+            dragSource.style.opacity = "1";
+            dragSource = null;
+          });
+
+          seat.addEventListener('dragend', () => {
+            if (dragSource) dragSource.style.opacity = "1";
+          });
+
+          rowDiv.appendChild(seat);
+          index++;
+        }
+
+        seatingArea.appendChild(rowDiv);
+      }
+    }
+
+    function saveData() {
+      const data = {
+        className: document.getElementById('className').value,
+        studentCount: document.getElementById('studentCount').value,
+        studentList: document.getElementById('studentList').value,
+        seatPattern: document.getElementById('seatPattern').value
+      };
+      localStorage.setItem('seatingPlannerData', JSON.stringify(data));
+      alert("✅ 資料已儲存。");
+    }
+
+    function loadData() {
+      const data = JSON.parse(localStorage.getItem('seatingPlannerData'));
+      if (data) {
+        document.getElementById('className').value = data.className;
+        document.getElementById('studentCount').value = data.studentCount;
+        document.getElementById('studentList').value = data.studentList;
+        document.getElementById('seatPattern').value = data.seatPattern;
+        alert("📂 資料已載入！");
+      } else {
+        alert("⚠️ 沒有可載入的資料！");
+      }
+    }
+
+    function downloadPDF() {
+      const element = document.getElementById('seatingArea');
+      const opt = {
+        margin: 0.2,
+        filename: '座位表.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+  </script>
+</body>
+</html>

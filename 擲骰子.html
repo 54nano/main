@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>🎲 擲骰統計（動畫模式）</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      text-align: center;
+      padding: 20px;
+    }
+    input, select, button {
+      padding: 8px;
+      font-size: 1rem;
+      margin: 5px;
+    }
+    .dice-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .dice {
+      width: 60px;
+      height: 60px;
+      font-size: 2rem;
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+      animation: roll 0.4s ease;
+    }
+    canvas {
+      max-width: 900px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎲 擲骰動畫模擬器</h2>
+
+  <label>總擲骰次數：</label>
+  <input type="number" id="rolls" value="500" min="1">
+  <label>骰子顆數：</label>
+  <select id="diceCount">
+    <option value="1">1 顆</option>
+    <option value="2" selected>2 顆</option>
+    <option value="3">3 顆</option>
+  </select>
+  <br>
+  <button onclick="startAnimatedSimulation()">🎲開始動畫模擬</button>
+
+  <button onclick="location.href='index.html'">🏠 回首頁</button>
+
+  <div class="dice-container" id="diceFaces"></div>
+  <div id="voiceResult"></div>
+  <canvas id="chart"></canvas>
+
+  <!-- 音效與語音功能 -->
+  <audio id="rollSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b1c8cf0a0.mp3?filename=dice-rolling-98391.mp3"></audio>
+
+  <script>
+    const diceEmoji = ["\u2680", "\u2681", "\u2682", "\u2683", "\u2684", "\u2685"];
+    let chartInstance;
+    let resultMap = {};
+    let currentRoll = 0;
+    let maxRolls = 0;
+    let dice = 2;
+    let labels = [];
+    let data = [];
+    let intervalId;
+
+    const rollSound = document.getElementById("rollSound");
+
+    function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'zh-TW';
+      utter.pitch = 1;
+      utter.rate = 1;
+      speechSynthesis.speak(utter);
+    }
+
+    function showDiceRolls(diceValues) {
+      const container = document.getElementById("diceFaces");
+      container.innerHTML = "";
+      diceValues.forEach(val => {
+        const div = document.createElement("div");
+        div.className = "dice";
+        div.innerText = diceEmoji[val - 1];
+        container.appendChild(div);
+      });
+    }
+
+    function updateChart() {
+      if (chartInstance) {
+        chartInstance.data.datasets[0].data = labels.map(sum => resultMap[sum]);
+        chartInstance.update();
+      }
+    }
+
+    function startAnimatedSimulation() {
+      dice = parseInt(document.getElementById("diceCount").value);
+      maxRolls = parseInt(document.getElementById("rolls").value);
+      const minSum = dice;
+      const maxSum = dice * 6;
+      resultMap = {};
+      for (let i = minSum; i <= maxSum; i++) {
+        resultMap[i] = 0;
+      }
+      labels = Object.keys(resultMap).map(Number);
+      data = labels.map(sum => resultMap[sum]);
+      currentRoll = 0;
+
+      const ctx = document.getElementById("chart").getContext("2d");
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '出現次數',
+            data: data,
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          animation: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      clearInterval(intervalId);
+      intervalId = setInterval(simulateStep, 30);
+    }
+
+    function simulateStep() {
+      if (currentRoll >= maxRolls) {
+        clearInterval(intervalId);
+        speak(`模擬完成，共擲了 ${maxRolls} 次。`);
+        return;
+      }
+
+      const rollResult = [];
+      let sum = 0;
+      for (let i = 0; i < dice; i++) {
+        const val = Math.floor(Math.random() * 6) + 1;
+        rollResult.push(val);
+        sum += val;
+      }
+
+      resultMap[sum]++;
+      currentRoll++;
+
+      rollSound.currentTime = 0;
+      rollSound.play();
+
+      if (currentRoll === 1) {
+        const msg = `第一次擲出 ${rollResult.join("、")}，總和為 ${sum}`;
+        document.getElementById("voiceResult").innerText = msg;
+        speak(msg);
+      }
+
+      showDiceRolls(rollResult);
+      updateChart();
+    }
+  </script>
+
+</body>
+</html>
+

@@ -114,7 +114,11 @@
         <label>公克 (g)<input type="number" data-type="weight" data-unit="g"></label>
         <label>噸 (ton)<input type="number" data-type="weight" data-unit="ton"></label>
         <label>磅 (lb)<input type="number" data-type="weight" data-unit="lb"></label>
-      </div>
+      
+<label>台斤 (jin)<input type="number" data-type="weight" data-unit="jin"></label>
+<label>台兩 (liang)<input type="number" data-type="weight" data-unit="liang"></label>
+<label>克拉 (carat)<input type="number" data-type="weight" data-unit="carat"></label>
+</div>
     </fieldset>
 
     <!-- 面積 -->
@@ -163,7 +167,15 @@
   <script>
     const conversions = {
       length: { m: 1, cm: 100, km: 0.001, inch: 39.3701 },
-      weight: { kg: 1, g: 1000, ton: 0.001, lb: 2.20462 },
+      weight: {
+  kg: 1,
+  g: 1000,
+  ton: 0.001,
+  lb: 2.20462,
+  jin: 1 / 0.6,
+  liang: 1 / 0.06,
+  carat: 5000
+},
       area: { m2: 1, cm2: 10000, ha: 0.0001, ping: 0.3025 },
       volume: { m3: 1, L: 1000, cm3: 1000000, gal: 264.172 }
     };

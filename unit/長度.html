@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多單位長度換算</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(to right, #e0f2f1, #ffffff);
+      color: #333;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin-bottom: 35px;
+      text-align: center;
+      font-size: 2.5em;
+    }
+    .top-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .top-buttons button {
+      padding: 8px 14px;
+      font-size: 0.9em;
+      border: none;
+      border-radius: 18px;
+      background: #6c757d;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .top-buttons button:hover {
+      background: #495057;
+    }
+    .converter-container {
+      background-color: #ffffff;
+      padding: 35px 45px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      max-width: 650px;
+      width: 100%;
+      border: 1px solid #e0e0e0;
+    }
+    .input-group {
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      background-color: #f8f9fa;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+    .input-group label {
+      flex-basis: 35%;
+      font-weight: 600;
+    }
+    .input-group input {
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ced4da;
+      width: 60%;
+      font-size: 1.1em;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .action-buttons button,
+    .action-buttons a {
+      padding: 12px 25px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(to right, #007bff, #0056b3);
+      color: white;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .action-buttons button:hover,
+    .action-buttons a:hover {
+      background: linear-gradient(to right, #0056b3, #004085);
+    }
+  </style>
+</head>
+<body>
+  <div class="top-buttons">
+    <button id="langToggle">🌐 EN</button>
+  </div>
+  <h1 id="title">📏 多單位長度換算</h1>
+  <div class="converter-container" id="converter"></div>
+  <div class="action-buttons">
+    <button id="resetBtn">重置</button>
+    <a href="unit.html" id="backBtn">回上一頁</a>
+  </div>
+
+  <script>
+    const units = [
+      ['meters', '公尺 (m)', 'Meters (m)'],
+      ['centimeters', '公分 (cm)', 'Centimeters (cm)'],
+      ['kilometers', '公里 (km)', 'Kilometers (km)'],
+      ['millimeters', '毫米 (mm)', 'Millimeters (mm)'],
+      ['inches', '英吋 (inch)', 'Inches (inch)'],
+      ['feet', '英呎 (feet)', 'Feet (feet)'],
+      ['yards', '碼 (yard)', 'Yards (yard)'],
+      ['miles', '英里 (mile)', 'Miles (mile)'],
+      ['nanometers', '奈米 (nm)', 'Nanometers (nm)'],
+      ['micrometers', '微米 (µm)', 'Micrometers (µm)'],
+      ['twFoot', '台尺', 'Taiwan Foot'],
+      ['twInch', '台寸', 'Taiwan Inch'],
+      ['zhang', '丈', 'Zhang']
+    ];
+
+    const conversionRates = {
+      meters: 1,
+      centimeters: 0.01,
+      kilometers: 1000,
+      millimeters: 0.001,
+      inches: 0.0254,
+      feet: 0.3048,
+      yards: 0.9144,
+      miles: 1609.34,
+      nanometers: 1e-9,
+      micrometers: 1e-6,
+      twFoot: 0.303030,
+      twInch: 0.030303,
+      zhang: 3.03030
+    };
+
+    let currentLang = 'zh';
+
+    function buildInputs() {
+      const container = document.getElementById('converter');
+      container.innerHTML = '';
+      units.forEach(([id, zh, en]) => {
+        const label = currentLang === 'zh' ? zh : en;
+        container.innerHTML += `
+          <div class="input-group">
+            <label for="${id}">${label}</label>
+            <input type="number" id="${id}" placeholder="0" oninput="convertFrom('${id}')">
+          </div>`;
+      });
+    }
+
+    function convertFrom(sourceUnit) {
+      const sourceValue = parseFloat(document.getElementById(sourceUnit).value);
+      if (isNaN(sourceValue)) {
+        units.forEach(([id]) => document.getElementById(id).value = '');
+        return;
+      }
+      const valueInMeters = sourceValue * conversionRates[sourceUnit];
+      units.forEach(([id]) => {
+        if (id !== sourceUnit) {
+          const result = valueInMeters / conversionRates[id];
+          document.getElementById(id).value = result.toFixed(6);
+        }
+      });
+    }
+
+    document.getElementById('langToggle').onclick = () => {
+      currentLang = currentLang === 'zh' ? 'en' : 'zh';
+      document.getElementById('langToggle').textContent = currentLang === 'zh' ? '🌐 EN' : '🌐 中文';
+      document.getElementById('title').textContent = currentLang === 'zh' ? '📏 多單位長度換算' : '📏 Multi-Unit Length Converter';
+      document.getElementById('backBtn').textContent = currentLang === 'zh' ? '回上一頁' : 'Back';
+      document.getElementById('resetBtn').textContent = currentLang === 'zh' ? '重置' : 'Reset';
+      buildInputs();
+    };
+
+    document.getElementById('resetBtn').onclick = () => {
+      units.forEach(([id]) => document.getElementById(id).value = '');
+    };
+
+    window.onload = buildInputs;
+  </script>
+</body>
+</html>
+
+
+

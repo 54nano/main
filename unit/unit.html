@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單位換算</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 兩欄佈局 */
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .button-container button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .button-container button:hover {
+            background-color: #0056b3;
+        }
+        .home-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #e0e0e0;
+            color: #333;
+            text-decoration: none; /* 移除超連結底線 */
+            transition: background-color 0.3s ease;
+        }
+        .home-button:hover {
+            background-color: #d0d0d0;
+        }
+    </style>
+</head>
+<body>
+    <h1>單位換算</h1>
+
+    <div class="button-container">
+        <button onclick="location.href='長度.html'">長度</button>
+        <button onclick="location.href='面積.html'">面積</button>
+        <button onclick="location.href='重量.html'">重量</button>
+        <button onclick="location.href='體積.html'">體積</button>
+        <button onclick="location.href='溫度.html'">溫度</button>
+    </div>
+
+    <a href="../Index.html" class="home-button">回首頁</a>
+</body>
+</html>

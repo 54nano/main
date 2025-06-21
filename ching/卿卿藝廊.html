@@ -90,7 +90,11 @@
 
   <div id="home">
     <a href="../index.html"><button>⟵ 回首頁</button></a>
+
   </div>
+
+
+
 
   <h1>卿卿藝廊</h1>
 
@@ -104,7 +108,12 @@
     <label><input type="radio" name="mode" value="random"> 自動播放（隨機）</label>
   </div>
 
-  <div class="controls">
+ 
+
+
+
+
+<div class="controls">
     <button onclick="prevImage()">⬅ 上一張</button>
     <button onclick="nextImage()">➡ 下一張</button>
     <button onclick="startAutoPlay()">▶ 播放</button>
@@ -114,13 +123,28 @@
   </div>
 
   <div class="extras">
-    <button onclick="toggleDarkMode()">🌙 夜間模式</button>
-    <button onclick="toggleMusic()">🎵 背景音樂</button>
+ 
+<!-- HTML：新增音樂選單與音量滑桿 -->
+<div class="extras">
+  <button onclick="toggleDarkMode()">🌙 夜間模式</button>
+  <button onclick="toggleMusic()">🎵 背景音樂</button>
+  <select id="musicSelector" onchange="changeMusic(this.value)">
+    <option value="music/piano.mp3">輕柔鋼琴</option>
+    <option value="music/moning.mp3">晨光旋律</option>
+    <option value="music/afterroon.mp3">午後音符</option>
+  </select>
+  <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" onchange="changeVolume(this.value)" />
+</div>
+
+
   </div>
 
-  <audio id="bgMusic" loop>
-    <source src="https://cdn.pixabay.com/audio/2022/10/30/audio_436657cc71.mp3" type="audio/mpeg">
-  </audio>
+ <audio id="bgMusic" loop>
+  <source src="music/piano.mp3" type="audio/mpeg">
+</audio>
+
+
+
 
   <script>
     let images = [];

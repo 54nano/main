@@ -90,11 +90,7 @@
 
   <div id="home">
     <a href="../index.html"><button>⟵ 回首頁</button></a>
-
   </div>
-
-
-
 
   <h1>LI卿藝廊</h1>
 
@@ -107,13 +103,8 @@
     <label><input type="radio" name="mode" value="auto"> 自動播放（循序）</label>
     <label><input type="radio" name="mode" value="random"> 自動播放（隨機）</label>
   </div>
-
  
-
-
-
-
-<div class="controls">
+  <div class="controls">
     <button onclick="prevImage()">⬅ 上一張</button>
     <button onclick="nextImage()">➡ 下一張</button>
     <button onclick="startAutoPlay()">▶ 播放</button>
@@ -123,34 +114,26 @@
   </div>
 
   <div class="extras">
- 
-<!-- HTML：新增音樂選單與音量滑桿 -->
-<div class="extras">
-  <button onclick="toggleDarkMode()">🌙 夜間模式</button>
-  <button onclick="toggleMusic()">🎵 背景音樂</button>
-  <select id="musicSelector" onchange="changeMusic(this.value)">
-    <option value="music/piano.mp3">輕柔鋼琴</option>
-    <option value="music/moning.mp3">晨光旋律</option>
-    <option value="music/afterroon.mp3">午後音符</option>
-  </select>
-  <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" onchange="changeVolume(this.value)" />
-</div>
-
-
+    <button onclick="toggleDarkMode()">🌙 夜間模式</button>
+    <button onclick="toggleMusic()">🎵 背景音樂</button>
+    <select id="musicSelector" onchange="changeMusic(this.value)">
+      <option value="music/piano.mp3">輕柔鋼琴</option>
+      <option value="music/morning.mp3">晨光旋律</option>
+      <option value="music/afternoon.mp3">午後音符</option>
+    </select>
+    <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" onchange="changeVolume(this.value)" />
   </div>
 
- <audio id="bgMusic" loop>
-  <source src="music/piano.mp3" type="audio/mpeg">
-</audio>
-
-
-
+  <audio id="bgMusic" loop>
+    <source src="music/piano.mp3" type="audio/mpeg">
+  </audio>
 
   <script>
     let images = [];
     let index = 0;
     let interval = null;
     const galleryImage = document.getElementById('galleryImage');
+    const bgMusic = document.getElementById('bgMusic'); // 獲取音頻元素
 
     fetch('images.json')
       .then(response => response.json())
@@ -214,14 +197,31 @@
       document.body.classList.toggle("dark-mode");
     }
 
+    // 新增：切換音樂播放/暫停
     function toggleMusic() {
-      const bgMusic = document.getElementById('bgMusic');
       if (bgMusic.paused) {
         bgMusic.play();
       } else {
         bgMusic.pause();
       }
     }
+
+    // 新增：改變音樂來源並播放
+    function changeMusic(src) {
+      bgMusic.src = src; // 設定新的音樂來源
+      bgMusic.play();    // 播放新的音樂
+    }
+
+    // 新增：改變音量
+    function changeVolume(volume) {
+      bgMusic.volume = parseFloat(volume); // 設定音量，確保是浮點數
+    }
+
+    // 初始化音量滑桿的值與音樂播放器的音量同步
+    document.addEventListener('DOMContentLoaded', () => {
+      const volumeControl = document.getElementById('volumeControl');
+      bgMusic.volume = parseFloat(volumeControl.value);
+    });
   </script>
 
 </body>

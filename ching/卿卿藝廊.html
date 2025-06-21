@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>卿卿藝廊</title>
+  <style>
+    body {
+      font-family: "微軟正黑體", sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      margin-top: 20px;
+      color: #333;
+    }
+
+    #frame {
+      width: 600px;
+      height: 400px;
+      margin: 20px auto;
+      border: 20px solid #8B4513;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #frame img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .controls, .mode {
+      margin: 10px;
+    }
+
+    button {
+      padding: 8px 15px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #home {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<a id="home" href="../index.html"><button>回首頁</button></a>
+
+<h1>卿卿藝廊</h1>
+
+<div id="frame">
+  <img id="galleryImage" src="" alt="藝廊圖片">
+</div>
+
+<div class="mode">
+  <label><input type="radio" name="mode" value="manual" checked> 手動播放</label>
+  <label><input type="radio" name="mode" value="auto"> 自動播放（循序）</label>
+  <label><input type="radio" name="mode" value="random"> 自動播放（隨機）</label>
+</div>
+
+<div class="controls">
+  <button onclick="prevImage()">上一張</button>
+  <button onclick="nextImage()">下一張</button>
+  <button onclick="startAutoPlay()">播放</button>
+  <button onclick="pauseAutoPlay()">暫停</button>
+  <button onclick="resetGallery()">重置</button>
+  <button onclick="stopAutoPlay()">停止</button>
+</div>
+
+<script>
+  let images = [];
+  let index = 0;
+  let interval = null;
+  const galleryImage = document.getElementById('galleryImage');
+
+  // 載入 images.json
+  fetch('images.json')
+    .then(response => response.json())
+    .then(data => {
+      images = data;
+      if (images.length > 0) {
+        showImage(index);
+      }
+    })
+    .catch(error => {
+      console.error("讀取圖片清單失敗：", error);
+    });
+
+  function showImage(i) {
+    if (images.length === 0) return;
+    index = (i + images.length) % images.length;
+    galleryImage.src = images[index];
+  }
+
+  function nextImage() {
+    showImage(index + 1);
+  }
+
+  function prevImage() {
+    showImage(index - 1);
+  }
+
+  function startAutoPlay() {
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    stopAutoPlay();
+
+    interval = setInterval(() => {
+      if (mode === "random") {
+        index = Math.floor(Math.random() * images.length);
+      } else {
+        index = (index + 1) % images.length;
+      }
+      showImage(index);
+    }, 2000);
+  }
+
+  function pauseAutoPlay() {
+    clearInterval(interval);
+  }
+
+  function stopAutoPlay() {
+    clearInterval(interval);
+    interval = null;
+  }
+
+  function resetGallery() {
+    stopAutoPlay();
+    index = 0;
+    showImage(index);
+  }
+</script>
+
+</body>
+</html>

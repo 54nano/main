@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>倒數天數</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -20,51 +21,50 @@
     }
 
     .container {
-      padding: 40px;
-      max-width: 600px;
-      margin: auto;
-      background-color: #ffffffbb;
+      padding: 6vw;
+      margin: 5vh auto;
+      background-color: #ffffffcc;
       border-radius: 20px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      margin-top: 60px;
-      animation: fadeIn 1s;
+      max-width: 90vw;
     }
 
     h1 {
-      font-size: 42px;
+      font-size: 8vw;
       background: linear-gradient(to right, #0d47a1, #1976d2);
       -webkit-background-clip: text;
       color: transparent;
-      margin-bottom: 30px;
+      margin-bottom: 6vw;
     }
 
     #now, #countdown {
-      font-size: 20px;
-      margin: 10px 0;
+      font-size: 4.5vw;
+      margin: 2vw 0;
       color: #333;
     }
 
     #daysLeft {
-      font-size: 56px;
+      font-size: 9vw;
       font-weight: bold;
       color: #d32f2f;
-      margin: 20px 0;
+      margin: 3vw 0;
     }
 
     input[type="date"] {
-      font-size: 18px;
-      padding: 10px;
-      border-radius: 8px;
+      font-size: 4.5vw;
+      padding: 2.5vw;
+      border-radius: 10px;
       border: 1px solid #bbb;
-      margin-bottom: 20px;
+      margin: 3vw 0;
+      width: 80%;
     }
 
     button {
-      font-size: 18px;
-      padding: 12px 20px;
-      margin: 10px 5px;
+      font-size: 4.5vw;
+      padding: 2.5vw 5vw;
+      margin: 2vw 1vw;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       background: #1976d2;
       color: white;
       cursor: pointer;
@@ -77,9 +77,36 @@
     }
 
     footer {
-      margin-top: 40px;
-      font-size: 14px;
+      margin-top: 8vh;
+      font-size: 3.5vw;
       color: #999;
+      padding-bottom: 4vh;
+    }
+
+    @media (min-width: 768px) {
+      h1 {
+        font-size: 42px;
+      }
+
+      #now, #countdown {
+        font-size: 20px;
+      }
+
+      #daysLeft {
+        font-size: 56px;
+      }
+
+      input[type="date"], button {
+        font-size: 18px;
+      }
+
+      button {
+        padding: 12px 20px;
+      }
+
+      footer {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -99,10 +126,11 @@
       <button onclick="pauseCountdown()">暫停</button>
       <button onclick="stopCountdown()">停止</button>
       <button onclick="resetCountdown()">重置</button>
-      <!--
-           學生版只提供單頁功能喔!           
-           <button onclick="goHome()">回首頁</button>
-        -->
+
+     <!-- 學生版本不提供 
+         <button onclick="goHome()">回首頁</button>
+       >
+
     </div>
   </div>
 

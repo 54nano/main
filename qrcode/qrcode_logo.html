@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Code 產生器（含圓形 Logo）</title>
+  <style>
+    body {
+      font-family: "微軟正黑體", sans-serif;
+      background-color: #f0f0f0;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background-color: #121212;
+      color: #f5f5f5;
+    }
+    input, select {
+      padding: 10px;
+      font-size: 16px;
+      width: 90%;
+      max-width: 400px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #333;
+      color: white;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    #qrcode {
+      margin-top: 20px;
+    }
+    canvas {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 QR Code 產生器（含圓形 Logo）</h1>
+
+  <input type="text" id="inputText" placeholder="請輸入文字或網址（支援中文網址）">
+  <br>
+  <select id="size">
+    <option value="256">大小：256x256</option>
+    <option value="384">大小：384x384</option>
+    <option value="512" selected>大小：512x512</option>
+  </select>
+  <br>
+  <select id="colorDark">
+    <option value="#000000">深色：黑色</option>
+    <option value="#0066CC">深色：藍色</option>
+    <option value="#FF0000">深色：紅色</option>
+    <option value="#009900">深色：綠色</option>
+  </select>
+  <br>
+  <select id="colorLight">
+    <option value="#ffffff">淺色：白色</option>
+    <option value="#f0f0f0">淺色：灰白</option>
+    <option value="#ffffcc">淺色：淡黃</option>
+  </select>
+  <br>
+
+  <input type="file" id="logoInput" accept="image/*">
+  <br>
+
+  <button onclick="generateQRCode()">產生 QR Code</button>
+  <button onclick="downloadQRCode()">下載 QR Code</button>
+  <button onclick="toggleDarkMode()">切換夜間模式</button>
+<!--  回首頁按鈕  -->
+  <a href="../index13.html">
+    <button>🏠 回首頁</button>
+  </a>
+
+  <div id="qrcode"></div>
+
+  <!-- QRCode 函式庫 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    function generateQRCode() {
+      const text = document.getElementById("inputText").value.trim();
+      const size = parseInt(document.getElementById("size").value);
+      const colorDark = document.getElementById("colorDark").value;
+      const colorLight = document.getElementById("colorLight").value;
+      const logoFile = document.getElementById("logoInput").files[0];
+      const qrDiv = document.getElementById("qrcode");
+      qrDiv.innerHTML = "";
+
+      if (!text) {
+        alert("請輸入內容！");
+        return;
+      }
+
+      const encodedText = encodeURI(text);
+      const tempDiv = document.createElement("div");
+      qrDiv.appendChild(tempDiv);
+      const qr = new QRCode(tempDiv, {
+        text: encodedText,
+        width: size,
+        height: size,
+        colorDark: colorDark,
+        colorLight: colorLight,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      setTimeout(() => {
+        const qrCanvas = tempDiv.querySelector("canvas");
+        const finalCanvas = document.createElement("canvas");
+        finalCanvas.width = size;
+        finalCanvas.height = size;
+        const ctx = finalCanvas.getContext("2d");
+        ctx.drawImage(qrCanvas, 0, 0, size, size);
+
+        if (logoFile) {
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            const img = new Image();
+            img.onload = function () {
+              const logoSize = size * 0.2;
+              const x = (size - logoSize) / 2;
+              const y = (size - logoSize) / 2;
+
+              // 建立圓形遮罩
+              const tempCanvas = document.createElement("canvas");
+              const tempCtx = tempCanvas.getContext("2d");
+              tempCanvas.width = logoSize;
+              tempCanvas.height = logoSize;
+              tempCtx.beginPath();
+              tempCtx.arc(logoSize / 2, logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+              tempCtx.closePath();
+              tempCtx.clip();
+              tempCtx.drawImage(img, 0, 0, logoSize, logoSize);
+
+              ctx.drawImage(tempCanvas, x, y, logoSize, logoSize);
+              qrDiv.innerHTML = "";
+              qrDiv.appendChild(finalCanvas);
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(logoFile);
+        } else {
+          qrDiv.innerHTML = "";
+          qrDiv.appendChild(finalCanvas);
+        }
+      }, 500);
+    }
+
+    function downloadQRCode() {
+      const canvas = document.querySelector("#qrcode canvas");
+      if (!canvas) {
+        alert("請先產生 QR Code！");
+        return;
+      }
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = "qrcode_with_logo.png";
+      link.click();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+  </script>
+
+</body>
+</html>

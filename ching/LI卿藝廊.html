@@ -96,19 +96,16 @@
 
   <div id="frame">
     <img id="galleryImage" src="" alt="藝廊圖片">
- 
-</div>
+  </div>
 
-<!-- 圖片說明框  -->
-<div id="caption" style="margin-top: 10px; font-size: 1.2em; color: #444;"></div>
-
+  <div id="caption" style="margin-top: 10px; font-size: 1.2em; color: #444;"></div>
 
   <div class="mode">
     <label><input type="radio" name="mode" value="manual" checked> 手動播放</label>
     <label><input type="radio" name="mode" value="auto"> 自動播放（循序）</label>
     <label><input type="radio" name="mode" value="random"> 自動播放（隨機）</label>
   </div>
- 
+
   <div class="controls">
     <button onclick="prevImage()">⬅ 上一張</button>
     <button onclick="nextImage()">➡ 下一張</button>
@@ -127,6 +124,13 @@
       <option value="music/afternoon.mp3">午後音符</option>
     </select>
     <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" onchange="changeVolume(this.value)" />
+    <label for="speedSelector">播放速度：</label>
+    <select id="speedSelector" onchange="updateSpeed()">
+      <option value="1000">1秒</option>
+      <option value="2000" selected>2秒</option>
+      <option value="3000">3秒</option>
+      <option value="5000">5秒</option>
+    </select>
   </div>
 
   <audio id="bgMusic" loop>
@@ -137,8 +141,9 @@
     let images = [];
     let index = 0;
     let interval = null;
+    let autoPlaySpeed = 2000;
     const galleryImage = document.getElementById('galleryImage');
-    const bgMusic = document.getElementById('bgMusic'); // 獲取音頻元素
+    const bgMusic = document.getElementById('bgMusic');
 
     fetch('images.json')
       .then(response => response.json())
@@ -152,33 +157,32 @@
         console.error("讀取圖片清單失敗：", error);
       });
 
-   function showImage(i) {
-  if (images.length === 0) return;
-  index = (i + images.length) % images.length;
-  const imageSrc = images[index];
-  const imageName = imageSrc.split('/').pop().split('.')[0]; // e.g. "1998花海"
-  const captionElement = document.getElementById('caption');
-  const txtPath = `txt/${imageName}.txt`;
+    function showImage(i) {
+      if (images.length === 0) return;
+      index = (i + images.length) % images.length;
+      const imageSrc = images[index];
+      const imageName = imageSrc.split('/').pop().split('.')[0];
+      const captionElement = document.getElementById('caption');
+      const txtPath = `txt/${imageName}.txt`;
 
-  galleryImage.classList.remove("visible");
-  setTimeout(() => {
-    galleryImage.src = imageSrc;
-    galleryImage.classList.add("visible");
+      galleryImage.classList.remove("visible");
+      setTimeout(() => {
+        galleryImage.src = imageSrc;
+        galleryImage.classList.add("visible");
 
-    fetch(txtPath)
-      .then(response => {
-        if (!response.ok) throw new Error("說明不存在");
-        return response.text();
-      })
-      .then(text => {
-        captionElement.textContent = text.trim();
-      })
-      .catch(() => {
-        captionElement.textContent = imageName.slice(0, 4) + "年";
-      });
-  }, 50);
-}
-
+        fetch(txtPath)
+          .then(response => {
+            if (!response.ok) throw new Error("說明不存在");
+            return response.text();
+          })
+          .then(text => {
+            captionElement.textContent = text.trim();
+          })
+          .catch(() => {
+            captionElement.textContent = imageName.slice(0, 4) + "年";
+          });
+      }, 50);
+    }
 
     function nextImage() {
       showImage(index + 1);
@@ -198,7 +202,7 @@
           index = (index + 1) % images.length;
         }
         showImage(index);
-      }, 2000);
+      }, autoPlaySpeed);
     }
 
     function pauseAutoPlay() {
@@ -220,7 +224,6 @@
       document.body.classList.toggle("dark-mode");
     }
 
-    // 新增：切換音樂播放/暫停
     function toggleMusic() {
       if (bgMusic.paused) {
         bgMusic.play();
@@ -229,18 +232,23 @@
       }
     }
 
-    // 新增：改變音樂來源並播放
     function changeMusic(src) {
-      bgMusic.src = src; // 設定新的音樂來源
-      bgMusic.play();    // 播放新的音樂
+      bgMusic.src = src;
+      bgMusic.play();
     }
 
-    // 新增：改變音量
     function changeVolume(volume) {
-      bgMusic.volume = parseFloat(volume); // 設定音量，確保是浮點數
+      bgMusic.volume = parseFloat(volume);
     }
 
-    // 初始化音量滑桿的值與音樂播放器的音量同步
+    function updateSpeed() {
+      const selector = document.getElementById('speedSelector');
+      autoPlaySpeed = parseInt(selector.value);
+      if (interval) {
+        startAutoPlay();
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const volumeControl = document.getElementById('volumeControl');
       bgMusic.volume = parseFloat(volumeControl.value);

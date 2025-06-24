@@ -87,18 +87,23 @@
   </style>
 </head>
 <body>
-<!-- 單一網頁版
+
+<!-- 單頁模式
   <div id="home">
-    <a href="../index.html"><button>⟵ 回首頁</button></a>
+    <a href="../index13.html"><button>⟵ 回首頁</button></a>
   </div>
 -->
 
   <h1>LI卿藝廊</h1>
 
-
   <div id="frame">
     <img id="galleryImage" src="" alt="藝廊圖片">
-  </div>
+ 
+</div>
+
+<!-- 圖片說明框  -->
+<div id="caption" style="margin-top: 10px; font-size: 1.2em; color: #444;"></div>
+
 
   <div class="mode">
     <label><input type="radio" name="mode" value="manual" checked> 手動播放</label>
@@ -149,15 +154,33 @@
         console.error("讀取圖片清單失敗：", error);
       });
 
-    function showImage(i) {
-      if (images.length === 0) return;
-      index = (i + images.length) % images.length;
-      galleryImage.classList.remove("visible");
-      setTimeout(() => {
-        galleryImage.src = images[index];
-        galleryImage.classList.add("visible");
-      }, 50);
-    }
+   function showImage(i) {
+  if (images.length === 0) return;
+  index = (i + images.length) % images.length;
+  const imageSrc = images[index];
+  const imageName = imageSrc.split('/').pop().split('.')[0]; // e.g. "1998花海"
+  const captionElement = document.getElementById('caption');
+  const txtPath = `txt/${imageName}.txt`;
+
+  galleryImage.classList.remove("visible");
+  setTimeout(() => {
+    galleryImage.src = imageSrc;
+    galleryImage.classList.add("visible");
+
+    fetch(txtPath)
+      .then(response => {
+        if (!response.ok) throw new Error("說明不存在");
+        return response.text();
+      })
+      .then(text => {
+        captionElement.textContent = text.trim();
+      })
+      .catch(() => {
+        captionElement.textContent = imageName.slice(0, 4) + "年";
+      });
+  }, 50);
+}
+
 
     function nextImage() {
       showImage(index + 1);

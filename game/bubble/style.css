@@ -1,0 +1,130 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #6dd5ed, #2193b0); /* 藍色漸變背景 */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* 防止滾動條 */
+    color: #333;
+}
+
+#game-container {
+    position: relative;
+    width: 600px; /* 遊戲區域寬度 */
+    height: 700px; /* 遊戲區域高度 */
+    background-color: #f0f8ff; /* 淡雅的遊戲背景 */
+    border: 8px solid #3a7bd5; /* 邊框 */
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    overflow: hidden; /* 確保內容不溢出 */
+}
+
+#gameCanvas {
+    display: block;
+    background-color: #e0f2f7; /* 更淺的遊戲背景 */
+    border-radius: 8px; /* 讓 Canvas 也有圓角 */
+}
+
+#score {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    color: #fff;
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 5px 10px;
+    border-radius: 8px;
+}
+
+/* 遊戲疊層 (用於開始畫面和結束畫面) */
+#game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* 半透明黑色背景 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    color: #fff;
+    text-align: center;
+    font-size: 24px;
+    flex-direction: column;
+}
+
+#start-screen, #game-over-screen {
+    background-color: rgba(0, 0, 0, 0.75);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+    width: 70%;
+    max-width: 400px;
+}
+
+#start-screen h2, #game-over-screen h2 {
+    font-size: 36px;
+    margin-bottom: 30px;
+    color: #fdd835; /* 黃色標題 */
+}
+
+.difficulty-options button, #restartButton {
+    display: block; /* 讓按鈕垂直排列 */
+    width: 80%;
+    margin: 15px auto;
+    padding: 15px 25px;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+#easyBtn { background-color: #4CAF50; } /* 綠色 */
+#mediumBtn { background-color: #ff9800; } /* 橙色 */
+#hardBtn { background-color: #f44336; } /* 紅色 */
+#restartButton { background-color: #2196F3; } /* 藍色 */
+
+
+.difficulty-options button:hover, #restartButton:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+#easyBtn:hover { background-color: #45a049; }
+#mediumBtn:hover { background-color: #e68a00; }
+#hardBtn:hover { background-color: #da190b; }
+#restartButton:hover { background-color: #1976D2; }
+
+#final-score {
+    font-size: 28px;
+    margin-bottom: 30px;
+    color: #aed581; /* 淺綠色分數 */
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 發射器指示線 (可選，但有助於瞄準) */
+#aim-line {
+    position: absolute;
+    bottom: 40px; /* 確保在發射器位置 */
+    left: 50%;
+    transform-origin: bottom center;
+    height: 150px; /* 指示線長度 */
+    width: 2px;
+    background-color: rgba(255, 255, 255, 0.7);
+    pointer-events: none; /* 不影響點擊事件 */
+    z-index: 5;
+    display: none; /* 預設隱藏 */
+}

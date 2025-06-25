@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -36,9 +37,29 @@
       margin: 5px;
       padding: 8px 16px;
     }
+    @media (max-width: 600px) {
+      table td {
+        width: 30px;
+        height: 30px;
+      }
+      input {
+        font-size: 14px;
+      }
+      button, select, input[type=text] {
+        font-size: 14px;
+        margin-top: 5px;
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+    }
   </style>
 </head>
 <body>
+<audio id="soundCorrect" src="audio/correct.mp3"></audio>
+<audio id="soundError" src="audio/error.mp3"></audio>
 
   <h1>數獨遊戲</h1>
 
@@ -54,6 +75,7 @@
     <button onclick="loadProgress()">載入進度</button>
     <button onclick="clearBoard()">清除全部</button>
     <button onclick="window.location.href='../game.html'">回上一頁</button>
+    <button onclick="solveSudoku()">🔍 自動解題</button>
   </div>
 
   <table id="sudokuBoard"></table>
@@ -162,7 +184,60 @@
       }
     }
 
-    // 預設載入簡單關卡
+    function solveSudoku() {
+      const table = document.getElementById('sudokuBoard');
+      let tempBoard = [];
+      for (let i = 0; i < 9; i++) {
+        tempBoard[i] = [];
+        for (let j = 0; j < 9; j++) {
+          let val = table.rows[i].cells[j].querySelector('input').value;
+          tempBoard[i][j] = parseInt(val) || 0;
+        }
+      }
+
+      function isValid(board, row, col, num) {
+        for (let i = 0; i < 9; i++) {
+          if (board[row][i] === num || board[i][col] === num) return false;
+          const boxRow = 3 * Math.floor(row / 3) + Math.floor(i / 3);
+          const boxCol = 3 * Math.floor(col / 3) + i % 3;
+          if (board[boxRow][boxCol] === num) return false;
+        }
+        return true;
+      }
+
+      function solve(board) {
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (board[r][c] === 0) {
+              for (let n = 1; n <= 9; n++) {
+                if (isValid(board, r, c, n)) {
+                  board[r][c] = n;
+                  if (solve(board)) return true;
+                  board[r][c] = 0;
+                }
+              }
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      if (solve(tempBoard)) {
+        for (let i = 0; i < 9; i++) {
+          for (let j = 0; j < 9; j++) {
+            let input = table.rows[i].cells[j].querySelector('input');
+            input.value = tempBoard[i][j];
+          }
+        }
+        document.getElementById('soundCorrect').play();
+        alert('已成功解題！');
+      } else {
+        document.getElementById('soundError').play();
+        alert('此題無解，請檢查輸入。');
+      }
+    }
+
     window.onload = () => {
       generateBoard('easy');
     };

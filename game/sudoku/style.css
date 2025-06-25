@@ -1,0 +1,35 @@
+body {
+  font-family: "微軟正黑體";
+  background: #f0f0f0;
+  color: #000;
+  transition: background 0.3s, color 0.3s;
+}
+body.night {
+  background: #121212;
+  color: #eee;
+}
+table { margin: 10px auto; border-collapse: collapse; }
+td { width: 40px; height: 40px; border: 1px solid #555; }
+td:nth-child(3n) { border-right: 2px solid #000; }
+tr:nth-child(3n) td { border-bottom: 2px solid #000; }
+input { width: 100%; height: 100%; text-align: center; font-size: 18px; }
+
+
+@media (max-width: 600px) {
+  table td {
+    width: 30px;
+    height: 30px;
+  }
+  input {
+    font-size: 14px;
+  }
+  button, select, input[type=text] {
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  .controls, .user, .timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

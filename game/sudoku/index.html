@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>進階數獨遊戲</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🧩 進階數獨</h1>
+    <button id="showRules">規則</button>
+    <button id="toggleNight">夜間模式</button>
+    <audio id="soundCorrect" src="audio/correct.mp3"></audio>
+    <audio id="soundError" src="audio/error.mp3"></audio>
+  </header>
+  <section class="controls">
+    <label>難度：
+      <select id="difficulty">
+        <option value="easy">簡單</option>
+        <option value="medium">中等</option>
+        <option value="hard">困難</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="autoCheck"> 自動檢查</label>
+    <label><input type="checkbox" id="enableTimer"> 倒數計時</label>
+    <button id="newGame">開始遊戲</button>
+  </section>
+  <button id="solveBtn">🔍 自動解題</button>
+  <section class="user">
+    <label>帳號名稱：<input type="text" id="username"></label>
+    <button id="saveUser">儲存進度</button>
+    <button id="loadUser">載入進度</button>
+  </section>
+  <button id="solveBtn">🔍 自動解題</button>
+  <section class="timer" hidden>
+    時間剩餘：<span id="timeDisplay">00:00</span>
+  </section>
+  <button id="solveBtn">🔍 自動解題</button>
+  <table id="sudokuBoard"></table>
+  <section id="leaderboard">
+    <h2>排行榜</h2>
+    <ol id="leaderboardList"></ol>
+  </section>
+  <button id="solveBtn">🔍 自動解題</button>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>數獨遊戲</title>
+  <style>
+    body {
+      font-family: "微軟正黑體";
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    td {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      vertical-align: middle;
+      border: 1px solid #333;
+    }
+    input {
+      width: 100%;
+      height: 100%;
+      font-size: 18px;
+      text-align: center;
+      border: none;
+      background-color: #fff;
+    }
+    .controls {
+      margin: 20px;
+    }
+    button {
+      font-size: 16px;
+      margin: 5px;
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>數獨遊戲</h1>
+
+  <div class="controls">
+    <label for="difficulty">選擇難度：</label>
+    <select id="difficulty">
+      <option value="easy">簡單</option>
+      <option value="medium">中等</option>
+      <option value="hard">困難</option>
+    </select>
+    <button onclick="newGame()">開始新遊戲</button>
+    <button onclick="saveProgress()">儲存進度</button>
+    <button onclick="loadProgress()">載入進度</button>
+    <button onclick="clearBoard()">清除全部</button>
+    <button onclick="window.location.href='../game.html'">回上一頁</button>
+  </div>
+
+  <table id="sudokuBoard"></table>
+
+  <script>
+    let board = [];
+    let originalBoard = [];
+
+    const samples = {
+      easy: [
+        [5, 3, '', '', 7, '', '', '', ''],
+        [6, '', '', 1, 9, 5, '', '', ''],
+        ['', 9, 8, '', '', '', '', 6, ''],
+        [8, '', '', '', 6, '', '', '', 3],
+        [4, '', '', 8, '', 3, '', '', 1],
+        [7, '', '', '', 2, '', '', '', 6],
+        ['', 6, '', '', '', '', 2, 8, ''],
+        ['', '', '', 4, 1, 9, '', '', 5],
+        ['', '', '', '', 8, '', '', 7, 9]
+      ],
+      medium: [
+        ['', '', 3, '', '', 5, '', 4, ''],
+        ['', '', '', '', '', '', 7, '', 1],
+        ['', '', '', '', '', '', '', '', 2],
+        ['', 5, '', 1, '', '', '', '', ''],
+        ['', '', '', '', '', '', '', 8, ''],
+        ['', '', '', 4, '', '', '', '', 7],
+        [6, '', '', '', '', '', '', '', ''],
+        ['', 8, '', '', '', '', '', '', ''],
+        ['', '', 5, '', 9, '', 1, '', '']
+      ],
+      hard: [
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '']
+      ]
+    };
+
+    function generateBoard(difficulty) {
+      board = JSON.parse(JSON.stringify(samples[difficulty]));
+      originalBoard = JSON.parse(JSON.stringify(board));
+      const table = document.getElementById('sudokuBoard');
+      table.innerHTML = '';
+
+      for (let i = 0; i < 9; i++) {
+        const row = table.insertRow();
+        for (let j = 0; j < 9; j++) {
+          const cell = row.insertCell();
+          const input = document.createElement('input');
+          input.maxLength = 1;
+          if (board[i][j] !== '') {
+            input.value = board[i][j];
+            input.disabled = true;
+            input.style.backgroundColor = '#eee';
+          }
+          input.oninput = () => {
+            board[i][j] = input.value;
+          };
+          cell.appendChild(input);
+        }
+      }
+    }
+
+    function newGame() {
+      const difficulty = document.getElementById('difficulty').value;
+      generateBoard(difficulty);
+    }
+
+    function saveProgress() {
+      localStorage.setItem('sudokuProgress', JSON.stringify(board));
+      alert('已儲存進度');
+    }
+
+    function loadProgress() {
+      const saved = localStorage.getItem('sudokuProgress');
+      if (!saved) return alert('無進度可載入');
+      board = JSON.parse(saved);
+      const table = document.getElementById('sudokuBoard');
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          const input = table.rows[i].cells[j].querySelector('input');
+          if (!originalBoard[i][j]) {
+            input.value = board[i][j];
+          }
+        }
+      }
+    }
+
+    function clearBoard() {
+      if (!confirm('確定要清除整個棋盤？')) return;
+      const table = document.getElementById('sudokuBoard');
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          const input = table.rows[i].cells[j].querySelector('input');
+          if (!originalBoard[i][j]) {
+            input.value = '';
+            board[i][j] = '';
+          }
+        }
+      }
+    }
+
+    // 預設載入簡單關卡
+    window.onload = () => {
+      generateBoard('easy');
+    };
+  </script>
+</body>
+</html>

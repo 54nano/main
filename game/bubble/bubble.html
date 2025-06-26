@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>泡泡射擊遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .night-mode {
+      background-color: #121212;
+      color: #eee;
+    }
+    #gameCanvas {
+      background: #eef;
+      display: block;
+      margin: auto;
+      border: 2px solid #333;
+      touch-action: none;
+    }
+    .controls {
+      text-align: center;
+      margin: 1em 0;
+    }
+    button, select {
+      padding: 10px;
+      font-size: 1em;
+      margin: 0.5em;
+    }
+    a.back-button {
+      display: inline-block;
+      margin: 1em;
+      font-size: 1em;
+      text-decoration: none;
+      color: #007bff;
+    }
+    #scoreBoard, #timer, #highScoreBoard, #leaderboard {
+      text-align: center;
+      font-size: 1.2em;
+    }
+    #timer {
+      color: crimson;
+    }
+    #leaderboardList {
+      list-style: none;
+      padding: 0;
+    }
+    #leaderboardList li {
+      margin: 4px 0;
+    }
+    #volumeControl {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a href="../game.html" class="back-button">⬅ 回上一頁</a>
+  <div class="controls">
+    <label>選擇難度:
+      <select id="difficulty">
+        <option value="easy">簡單</option>
+        <option value="medium">中等</option>
+        <option value="hard">困難</option>
+      </select>
+    </label>
+    <label>遊戲時間:
+      <select id="timeSelect">
+        <option value="30">30 秒</option>
+        <option value="60" selected>60 秒</option>
+        <option value="90">90 秒</option>
+      </select>
+    </label>
+    <button onclick="startGame()">開始遊戲</button>
+    <button onclick="toggleNightMode()">夜間模式切換</button>
+    <label id="volumeControl">音量:
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+    </label>
+    <button onclick="toggleMusic()">暫停/播放音樂</button>
+  </div>
+  <div id="scoreBoard">分數: <span id="score">0</span></div>
+  <div id="highScoreBoard">最佳分數: <span id="highScore">0</span></div>
+  <div id="timer">時間: <span id="time">60</span> 秒</div>
+  <div id="leaderboard">
+    排行榜:
+    <ul id="leaderboardList"></ul>
+  </div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('highScore');
+    const timeDisplay = document.getElementById('time');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const timeSelect = document.getElementById('timeSelect');
+    const difficultySelect = document.getElementById('difficulty');
+
+    let bubbles = [], shooterBubble, nextBubble, level = 1, score = 0, time = 60, timerInterval;
+    let isNight = false;
+    let cheerPlayed = false;
+    let timerStarted = false;
+    const soundShoot = new Audio('shoot.mp3');
+    const soundPop = new Audio('pop.mp3');
+    const soundCheer = new Audio('cheer.mp3');
+    const bgMusic = new Audio('bgm.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = parseFloat(volumeSlider.value);
+    bgMusic.play();
+
+    function toggleMusic() {
+      if (bgMusic.paused) {
+        bgMusic.play();
+      } else {
+        bgMusic.pause();
+      }
+    }
+
+    volumeSlider.addEventListener('input', () => {
+      const volume = parseFloat(volumeSlider.value);
+      soundShoot.volume = volume;
+      soundPop.volume = volume;
+      soundCheer.volume = volume;
+      bgMusic.volume = volume;
+    });
+
+    function toggleNightMode() {
+      isNight = !isNight;
+      document.body.classList.toggle('night-mode', isNight);
+    }
+
+    function startGame() {
+      clearInterval(timerInterval);
+      time = parseInt(timeSelect.value);
+      timeDisplay.textContent = time;
+      timerStarted = true;
+      cheerPlayed = false;
+      score = 0;
+      scoreDisplay.textContent = score;
+      const diff = difficultySelect.value;
+      switch(diff) {
+        case 'easy': level = 1; break;
+        case 'medium': level = 3; break;
+        case 'hard': level = 5; break;
+      }
+      localStorage.setItem('bubbleLevel', level);
+
+      timerInterval = setInterval(() => {
+        time--;
+        timeDisplay.textContent = time;
+        if (time <= 0) {
+          clearInterval(timerInterval);
+          alert('時間到！總得分: ' + score);
+          updateHighScore();
+          resetGame();
+        }
+      }, 1000);
+
+      bubbles = [];
+      const bubbleCount = 10 + level * 5;
+      for (let i = 0; i < bubbleCount; i++) {
+        bubbles.push({
+          x: Math.random() * (canvas.width - 30) + 15,
+          y: Math.random() * canvas.height / 2,
+          r: 15,
+          color: getRandomColor()
+        });
+      }
+
+      updateHighScore();
+      spawnShooterBubble();
+    }
+
+    function resetGame() {
+      level = 1;
+      localStorage.setItem('bubbleLevel', level);
+      startGame();
+    }
+
+    function getRandomColor() {
+      const baseColors = ['red', 'green', 'blue', 'yellow', 'purple'];
+      const extraColors = ['cyan', 'orange'];
+      let colorPool = baseColors.slice();
+      if (level > 3) colorPool = colorPool.concat(extraColors);
+      return colorPool[Math.floor(Math.random() * colorPool.length)];
+    }
+
+    function updateHighScore() {
+      let high = parseInt(localStorage.getItem('bubbleHighScore')) || 0;
+      if (score > high) {
+        localStorage.setItem('bubbleHighScore', score);
+        updateLeaderboard(score);
+        high = score;
+      }
+      highScoreDisplay.textContent = high;
+    }
+
+    function updateLeaderboard(newScore) {
+      let scores = JSON.parse(localStorage.getItem('bubbleLeaderboard') || '[]');
+      scores.push(newScore);
+      scores.sort((a, b) => b - a);
+      scores = scores.slice(0, 5);
+      localStorage.setItem('bubbleLeaderboard', JSON.stringify(scores));
+      leaderboardList.innerHTML = '';
+      scores.forEach((s, i) => {
+        const li = document.createElement('li');
+        li.textContent = `#${i + 1}: ${s}`;
+        leaderboardList.appendChild(li);
+      });
+    }
+
+    function spawnShooterBubble() {
+      shooterBubble = nextBubble || {
+        x: canvas.width / 2,
+        y: canvas.height - 30,
+        r: 15,
+        color: getRandomColor(),
+        dx: 0,
+        dy: 0,
+        moving: false
+      };
+      shooterBubble.x = canvas.width / 2;
+      shooterBubble.y = canvas.height - 30;
+      shooterBubble.dx = 0;
+      shooterBubble.dy = 0;
+      shooterBubble.moving = false;
+      nextBubble = {
+        x: 0, y: 0, r: 15, color: getRandomColor()
+      };
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      bubbles.forEach(b => drawBubble(b));
+      if (shooterBubble) drawBubble(shooterBubble);
+
+      if (nextBubble) {
+        ctx.font = '14px Arial';
+        ctx.fillStyle = isNight ? '#ccc' : '#333';
+        ctx.fillText('下一顆：', 10, canvas.height - 10);
+        ctx.beginPath();
+        ctx.arc(70, canvas.height - 15, 10, 0, Math.PI * 2);
+        ctx.fillStyle = nextBubble.color;
+        ctx.fill();
+      }
+
+      ctx.fillStyle = isNight ? '#ccc' : '#333';
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2 - 10, canvas.height);
+      ctx.lineTo(canvas.width / 2 + 10, canvas.height);
+      ctx.lineTo(canvas.width / 2, canvas.height - 40);
+      ctx.fill();
+    }
+
+    function drawBubble(b) {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = b.color;
+      ctx.fill();
+    }
+
+    function shootBubble(x, y) {
+      if (shooterBubble.moving) return;
+      soundShoot.play();
+      const angle = Math.atan2(y - shooterBubble.y, x - shooterBubble.x);
+      shooterBubble.dx = Math.cos(angle) * 5;
+      shooterBubble.dy = Math.sin(angle) * 5;
+      shooterBubble.moving = true;
+    }
+
+    function updateGame() {
+      if (shooterBubble && shooterBubble.moving) {
+        shooterBubble.x += shooterBubble.dx;
+        shooterBubble.y += shooterBubble.dy;
+        // 碰撞略
+        if (shooterBubble.y < -20) {
+          shooterBubble.moving = false;
+          spawnShooterBubble();
+        }
+      }
+    }
+
+    function gameLoop() {
+      updateGame();
+      drawGame();
+      requestAnimationFrame(gameLoop);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      shootBubble(e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      shootBubble(touch.clientX - rect.left, touch.clientY - rect.top);
+    }, { passive: false });
+
+    function initLeaderboard() {
+      let scores = JSON.parse(localStorage.getItem('bubbleLeaderboard') || '[]');
+      scores.forEach((s, i) => {
+        const li = document.createElement('li');
+        li.textContent = `#${i + 1}: ${s}`;
+        leaderboardList.appendChild(li);
+      });
+    }
+
+    level = parseInt(localStorage.getItem('bubbleLevel')) || 1;
+    initLeaderboard();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

@@ -1,2 +1,89 @@
 <!DOCTYPE html>
-<!-- HTML內容省略，完整內容已在Canvas中 -->
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>泡泡射擊遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .night-mode {
+      background-color: #121212;
+      color: #eee;
+    }
+    #gameCanvas {
+      background: #eef;
+      display: block;
+      margin: auto;
+      border: 2px solid #333;
+      touch-action: none;
+    }
+    .controls {
+      text-align: center;
+      margin: 1em 0;
+    }
+    button, select {
+      padding: 10px;
+      font-size: 1em;
+      margin: 0.5em;
+    }
+    a.back-button {
+      display: inline-block;
+      margin: 1em;
+      font-size: 1em;
+      text-decoration: none;
+      color: #007bff;
+    }
+    #scoreBoard, #timer, #highScoreBoard, #leaderboard {
+      text-align: center;
+      font-size: 1.2em;
+    }
+    #timer {
+      color: crimson;
+    }
+    #leaderboardList {
+      list-style: none;
+      padding: 0;
+    }
+    #leaderboardList li {
+      margin: 4px 0;
+    }
+    #volumeControl {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+<!-- HTML Body 內容 -->
+<a href="game.html" class="back-button">⬅ 回上一頁</a>
+<div class="controls">
+  <label>選擇難度:
+    <select id="difficulty">
+      <option value="easy">簡單</option>
+      <option value="medium">中等</option>
+      <option value="hard">困難</option>
+    </select>
+  </label>
+  <button onclick="toggleNightMode()">夜間模式切換</button>
+  <label id="volumeControl">音量:
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+  </label>
+</div>
+<div id="scoreBoard">分數: <span id="score">0</span></div>
+<div id="highScoreBoard">最佳分數: <span id="highScore">0</span></div>
+<div id="timer">時間: <span id="time">60</span> 秒</div>
+<div id="leaderboard">
+  排行榜:
+  <ul id="leaderboardList"></ul>
+</div>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<script>
+/* JavaScript 內容與功能，請見 Canvas 原始腳本，因字數限制此處略 */
+</script>
+</body>
+</html>

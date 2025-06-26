@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>泡泡射擊遊戲</title>
   <style>
     body {
@@ -68,20 +68,24 @@
         <option value="hard">困難</option>
       </select>
     </label>
+
     <label>遊戲時間:
       <select id="timeSelect">
-        <option value="30">30 秒</option>
-        <option value="60" selected>60 秒</option>
-        <option value="90">90 秒</option>
+        <option value="30">30秒</option>
+        <option value="60" selected>60秒</option>
+        <option value="90">90秒</option>
       </select>
     </label>
-    <button onclick="startGame()">開始遊戲</button>
+
     <button onclick="toggleNightMode()">夜間模式切換</button>
+
     <label id="volumeControl">音量:
-      <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1" />
     </label>
-    <button onclick="toggleMusic()">暫停/播放音樂</button>
+
+    <button onclick="toggleMusic()">背景音樂開/關</button>
   </div>
+
   <div id="scoreBoard">分數: <span id="score">0</span></div>
   <div id="highScoreBoard">最佳分數: <span id="highScore">0</span></div>
   <div id="timer">時間: <span id="time">60</span> 秒</div>
@@ -90,6 +94,13 @@
     <ul id="leaderboardList"></ul>
   </div>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <!-- 背景音樂 -->
+  <audio id="bgMusic" loop>
+    <source src="background.mp3" type="audio/mpeg">
+    您的瀏覽器不支援音樂播放。
+  </audio>
+
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -98,28 +109,16 @@
     const timeDisplay = document.getElementById('time');
     const leaderboardList = document.getElementById('leaderboardList');
     const volumeSlider = document.getElementById('volumeSlider');
+    const bgMusic = document.getElementById('bgMusic');
     const timeSelect = document.getElementById('timeSelect');
-    const difficultySelect = document.getElementById('difficulty');
 
-    let bubbles = [], shooterBubble, nextBubble, level = 1, score = 0, time = 60, timerInterval;
+    let bubbles = [], shooterBubble, nextBubble;
+    let level = 1, score = 0, time = 60, gameTime = 60, timerInterval;
     let isNight = false;
     let cheerPlayed = false;
-    let timerStarted = false;
     const soundShoot = new Audio('shoot.mp3');
     const soundPop = new Audio('pop.mp3');
     const soundCheer = new Audio('cheer.mp3');
-    const bgMusic = new Audio('bgm.mp3');
-    bgMusic.loop = true;
-    bgMusic.volume = parseFloat(volumeSlider.value);
-    bgMusic.play();
-
-    function toggleMusic() {
-      if (bgMusic.paused) {
-        bgMusic.play();
-      } else {
-        bgMusic.pause();
-      }
-    }
 
     volumeSlider.addEventListener('input', () => {
       const volume = parseFloat(volumeSlider.value);
@@ -129,57 +128,22 @@
       bgMusic.volume = volume;
     });
 
+    timeSelect.addEventListener('change', () => {
+      gameTime = parseInt(timeSelect.value);
+      initGame();
+    });
+
     function toggleNightMode() {
       isNight = !isNight;
       document.body.classList.toggle('night-mode', isNight);
     }
 
-    function startGame() {
-      clearInterval(timerInterval);
-      time = parseInt(timeSelect.value);
-      timeDisplay.textContent = time;
-      timerStarted = true;
-      cheerPlayed = false;
-      score = 0;
-      scoreDisplay.textContent = score;
-      const diff = difficultySelect.value;
-      switch(diff) {
-        case 'easy': level = 1; break;
-        case 'medium': level = 3; break;
-        case 'hard': level = 5; break;
+    function toggleMusic() {
+      if (bgMusic.paused) {
+        bgMusic.play();
+      } else {
+        bgMusic.pause();
       }
-      localStorage.setItem('bubbleLevel', level);
-
-      timerInterval = setInterval(() => {
-        time--;
-        timeDisplay.textContent = time;
-        if (time <= 0) {
-          clearInterval(timerInterval);
-          alert('時間到！總得分: ' + score);
-          updateHighScore();
-          resetGame();
-        }
-      }, 1000);
-
-      bubbles = [];
-      const bubbleCount = 10 + level * 5;
-      for (let i = 0; i < bubbleCount; i++) {
-        bubbles.push({
-          x: Math.random() * (canvas.width - 30) + 15,
-          y: Math.random() * canvas.height / 2,
-          r: 15,
-          color: getRandomColor()
-        });
-      }
-
-      updateHighScore();
-      spawnShooterBubble();
-    }
-
-    function resetGame() {
-      level = 1;
-      localStorage.setItem('bubbleLevel', level);
-      startGame();
     }
 
     function getRandomColor() {
@@ -212,6 +176,54 @@
         li.textContent = `#${i + 1}: ${s}`;
         leaderboardList.appendChild(li);
       });
+    }
+
+    function initLeaderboard() {
+      let scores = JSON.parse(localStorage.getItem('bubbleLeaderboard') || '[]');
+      scores.forEach((s, i) => {
+        const li = document.createElement('li');
+        li.textContent = `#${i + 1}: ${s}`;
+        leaderboardList.appendChild(li);
+      });
+    }
+
+    function initGame() {
+      clearInterval(timerInterval);
+      time = gameTime;
+      timeDisplay.textContent = time;
+      cheerPlayed = false;
+      timerInterval = setInterval(() => {
+        time--;
+        timeDisplay.textContent = time;
+        if (time <= 0) {
+          alert('時間到！總得分: ' + score);
+          updateHighScore();
+          clearInterval(timerInterval);
+          resetGame();
+        }
+      }, 1000);
+
+      bubbles = [];
+      const bubbleCount = 10 + level * 5;
+      for (let i = 0; i < bubbleCount; i++) {
+        bubbles.push({
+          x: Math.random() * (canvas.width - 30) + 15,
+          y: Math.random() * canvas.height / 2,
+          r: 15,
+          color: getRandomColor()
+        });
+      }
+      score = 0;
+      scoreDisplay.textContent = score;
+      updateHighScore();
+      spawnShooterBubble();
+      drawGame();
+    }
+
+    function resetGame() {
+      level = 1;
+      localStorage.setItem('bubbleLevel', level);
+      initGame();
     }
 
     function spawnShooterBubble() {
@@ -264,20 +276,74 @@
       ctx.fill();
     }
 
-    function shootBubble(x, y) {
+    function shootBubble(angleX, angleY) {
       if (shooterBubble.moving) return;
       soundShoot.play();
-      const angle = Math.atan2(y - shooterBubble.y, x - shooterBubble.x);
+      const angle = Math.atan2(angleY - shooterBubble.y, angleX - shooterBubble.x);
       shooterBubble.dx = Math.cos(angle) * 5;
       shooterBubble.dy = Math.sin(angle) * 5;
       shooterBubble.moving = true;
+    }
+
+    function findMatchingCluster(targetBubble) {
+      let cluster = [];
+      let visited = new Set();
+      function dfs(b) {
+        if (!b || visited.has(b)) return;
+        visited.add(b);
+        cluster.push(b);
+        for (let other of bubbles) {
+          const dx = b.x - other.x;
+          const dy = b.y - other.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < b.r * 2 + 2 && b.color === other.color) {
+            dfs(other);
+          }
+        }
+      }
+      dfs(targetBubble);
+      return cluster;
     }
 
     function updateGame() {
       if (shooterBubble && shooterBubble.moving) {
         shooterBubble.x += shooterBubble.dx;
         shooterBubble.y += shooterBubble.dy;
-        // 碰撞略
+
+        if (shooterBubble.x < shooterBubble.r || shooterBubble.x > canvas.width - shooterBubble.r) {
+          shooterBubble.dx *= -1;
+        }
+
+        for (let i = 0; i < bubbles.length; i++) {
+          const b = bubbles[i];
+          const dx = shooterBubble.x - b.x;
+          const dy = shooterBubble.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < b.r + shooterBubble.r) {
+            if (b.color === shooterBubble.color) {
+              const cluster = findMatchingCluster(b);
+              if (cluster.length >= 3) {
+                soundPop.play();
+                bubbles = bubbles.filter(bub => !cluster.includes(bub));
+                const prevScore = score;
+                score += cluster.length * 10;
+                scoreDisplay.textContent = score;
+                if (!cheerPlayed && prevScore < 100 && score >= 100) {
+                  soundCheer.play();
+                  cheerPlayed = true;
+                }
+              } else {
+                bubbles.push({ x: shooterBubble.x, y: shooterBubble.y, r: shooterBubble.r, color: shooterBubble.color });
+              }
+            } else {
+              bubbles.push({ x: shooterBubble.x, y: shooterBubble.y, r: shooterBubble.r, color: shooterBubble.color });
+            }
+            shooterBubble.moving = false;
+            spawnShooterBubble();
+            break;
+          }
+        }
+
         if (shooterBubble.y < -20) {
           shooterBubble.moving = false;
           spawnShooterBubble();
@@ -288,6 +354,11 @@
     function gameLoop() {
       updateGame();
       drawGame();
+      if (bubbles.length === 0) {
+        level++;
+        localStorage.setItem('bubbleLevel', level);
+        initGame();
+      }
       requestAnimationFrame(gameLoop);
     }
 
@@ -303,16 +374,20 @@
       shootBubble(touch.clientX - rect.left, touch.clientY - rect.top);
     }, { passive: false });
 
-    function initLeaderboard() {
-      let scores = JSON.parse(localStorage.getItem('bubbleLeaderboard') || '[]');
-      scores.forEach((s, i) => {
-        const li = document.createElement('li');
-        li.textContent = `#${i + 1}: ${s}`;
-        leaderboardList.appendChild(li);
-      });
-    }
+    document.getElementById('difficulty').addEventListener('change', (e) => {
+      const diff = e.target.value;
+      switch(diff) {
+        case 'easy': level = 1; break;
+        case 'medium': level = 3; break;
+        case 'hard': level = 5; break;
+      }
+      localStorage.setItem('bubbleLevel', level);
+      initGame();
+    });
 
     level = parseInt(localStorage.getItem('bubbleLevel')) || 1;
+    gameTime = parseInt(timeSelect.value);
+    initGame();
     initLeaderboard();
     requestAnimationFrame(gameLoop);
   </script>

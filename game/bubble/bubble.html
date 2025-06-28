@@ -84,7 +84,7 @@
     </label>
 
     <button onclick="toggleMusic()">背景音樂開/關</button>
-  </div>
+    <button id="startButton">開始遊戲</button> </div>
 
   <div id="scoreBoard">分數: <span id="score">0</span></div>
   <div id="highScoreBoard">最佳分數: <span id="highScore">0</span></div>
@@ -95,7 +95,6 @@
   </div>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
 
-  <!-- 背景音樂 -->
   <audio id="bgMusic" loop>
     <source src="background.mp3" type="audio/mpeg">
     您的瀏覽器不支援音樂播放。
@@ -111,14 +110,18 @@
     const volumeSlider = document.getElementById('volumeSlider');
     const bgMusic = document.getElementById('bgMusic');
     const timeSelect = document.getElementById('timeSelect');
+    const startButton = document.getElementById('startButton'); // 獲取開始按鈕
 
     let bubbles = [], shooterBubble, nextBubble;
     let level = 1, score = 0, time = 60, gameTime = 60, timerInterval;
     let isNight = false;
     let cheerPlayed = false;
+    let gameStarted = false; // 新增遊戲狀態變數
+
     const soundShoot = new Audio('shoot.mp3');
     const soundPop = new Audio('pop.mp3');
     const soundCheer = new Audio('cheer.mp3');
+    const soundBounce = new Audio('bounce.mp3');
 
     volumeSlider.addEventListener('input', () => {
       const volume = parseFloat(volumeSlider.value);
@@ -126,11 +129,16 @@
       soundPop.volume = volume;
       soundCheer.volume = volume;
       bgMusic.volume = volume;
+      soundBounce.volume = volume;
     });
 
     timeSelect.addEventListener('change', () => {
       gameTime = parseInt(timeSelect.value);
-      initGame();
+      if (!gameStarted) { // 如果遊戲未開始，僅更新時間顯示
+        timeDisplay.textContent = gameTime;
+      } else {
+        initGame(); // 遊戲中改變時間則重新開始遊戲
+      }
     });
 
     function toggleNightMode() {
@@ -187,7 +195,13 @@
       });
     }
 
-    function initGame() {
+    function startGame() {
+      if (gameStarted) return; // 如果遊戲已經開始，則不做任何事
+      gameStarted = true;
+      startButton.disabled = true; // 禁用開始按鈕
+      document.getElementById('difficulty').disabled = true; // 禁用難度選擇
+      timeSelect.disabled = true; // 禁用時間選擇
+
       clearInterval(timerInterval);
       time = gameTime;
       timeDisplay.textContent = time;
@@ -199,6 +213,10 @@
           alert('時間到！總得分: ' + score);
           updateHighScore();
           clearInterval(timerInterval);
+          gameStarted = false; // 遊戲結束
+          startButton.disabled = false; // 啟用開始按鈕
+          document.getElementById('difficulty').disabled = false; // 啟用難度選擇
+          timeSelect.disabled = false; // 啟用時間選擇
           resetGame();
         }
       }, 1000);
@@ -223,7 +241,14 @@
     function resetGame() {
       level = 1;
       localStorage.setItem('bubbleLevel', level);
-      initGame();
+      // initGame(); // 移除這裡的 initGame，由 startGame 負責開始
+      bubbles = []; // 清空泡泡，等待重新開始
+      shooterBubble = null; // 清空射擊泡泡
+      nextBubble = null; // 清空下一個泡泡
+      drawGame(); // 重新繪製空白遊戲畫面
+      score = 0; // 重置分數
+      scoreDisplay.textContent = score;
+      timeDisplay.textContent = gameTime; // 重置時間顯示
     }
 
     function spawnShooterBubble() {
@@ -277,7 +302,7 @@
     }
 
     function shootBubble(angleX, angleY) {
-      if (shooterBubble.moving) return;
+      if (!gameStarted || shooterBubble.moving) return; // 只有在遊戲開始且泡泡未移動時才能射擊
       soundShoot.play();
       const angle = Math.atan2(angleY - shooterBubble.y, angleX - shooterBubble.x);
       shooterBubble.dx = Math.cos(angle) * 5;
@@ -306,12 +331,15 @@
     }
 
     function updateGame() {
+      if (!gameStarted) return; // 遊戲未開始則不更新
+
       if (shooterBubble && shooterBubble.moving) {
         shooterBubble.x += shooterBubble.dx;
         shooterBubble.y += shooterBubble.dy;
 
-        if (shooterBubble.x < shooterBubble.r || shooterBubble.x > canvas.width - shooterBubble.r) {
+       if (shooterBubble.x < shooterBubble.r || shooterBubble.x > canvas.width - shooterBubble.r) {
           shooterBubble.dx *= -1;
+          soundBounce.play();
         }
 
         for (let i = 0; i < bubbles.length; i++) {
@@ -354,10 +382,10 @@
     function gameLoop() {
       updateGame();
       drawGame();
-      if (bubbles.length === 0) {
+      if (gameStarted && bubbles.length === 0) { // 只有在遊戲進行中且泡泡清空才升級
         level++;
         localStorage.setItem('bubbleLevel', level);
-        initGame();
+        initGame(); // 重新初始化遊戲以進入下一關
       }
       requestAnimationFrame(gameLoop);
     }
@@ -382,12 +410,17 @@
         case 'hard': level = 5; break;
       }
       localStorage.setItem('bubbleLevel', level);
-      initGame();
+      if (gameStarted) { // 如果遊戲已經開始，則重新初始化遊戲
+        initGame();
+      }
     });
+
+    startButton.addEventListener('click', startGame); // 為開始按鈕添加事件監聽器
 
     level = parseInt(localStorage.getItem('bubbleLevel')) || 1;
     gameTime = parseInt(timeSelect.value);
-    initGame();
+    timeDisplay.textContent = gameTime; // 初始化時間顯示為選擇的遊戲時間
+    // initGame(); // 移除這裡的 initGame，讓遊戲等待使用者點擊開始按鈕
     initLeaderboard();
     requestAnimationFrame(gameLoop);
   </script>
